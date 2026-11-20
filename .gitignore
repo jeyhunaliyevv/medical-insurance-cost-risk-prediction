@@ -1,0 +1,10 @@
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+catboost_info/
+*.pyc
+.env
+.venv/
+models/*.joblib
+# Remove this line only after verifying source dataset redistribution rights
+data/insurance.csv

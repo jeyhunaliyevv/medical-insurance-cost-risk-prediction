@@ -1,0 +1,49 @@
+{
+  "dataset_rows": 1338,
+  "duplicates_reported": 1,
+  "high_cost_definition": "charges >= $20,000 (fixed illustrative cutoff)",
+  "high_cost_rate": 0.204,
+  "selection_metric": "5-fold training CV ROC-AUC",
+  "selected_model": "CatBoost",
+  "n_train": 1070,
+  "n_test": 268,
+  "models": {
+    "LogisticRegression": {
+      "cv_roc_auc_mean": 0.8808,
+      "cv_roc_auc_std": 0.0465,
+      "holdout": {
+        "roc_auc": 0.9434,
+        "pr_auc": 0.9171,
+        "brier": 0.034,
+        "precision": 0.9792,
+        "recall": 0.8545,
+        "f1": 0.9126
+      }
+    },
+    "XGBoost": {
+      "cv_roc_auc_mean": 0.8761,
+      "cv_roc_auc_std": 0.0401,
+      "holdout": {
+        "roc_auc": 0.9469,
+        "pr_auc": 0.9271,
+        "brier": 0.0315,
+        "precision": 1.0,
+        "recall": 0.8545,
+        "f1": 0.9216
+      }
+    },
+    "CatBoost": {
+      "cv_roc_auc_mean": 0.8854,
+      "cv_roc_auc_std": 0.0323,
+      "holdout": {
+        "roc_auc": 0.9531,
+        "pr_auc": 0.9273,
+        "brier": 0.031,
+        "precision": 1.0,
+        "recall": 0.8545,
+        "f1": 0.9216
+      }
+    }
+  },
+  "shap_model": "CatBoost"
+}
