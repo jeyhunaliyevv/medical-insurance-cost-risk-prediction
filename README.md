@@ -117,4 +117,4 @@ The exact metrics after the methodological fixes are in [`reports/metrics.json`]
 
 ## Limitations & ethics
 
-This small teaching dataset has limited representativeness and unknown underlying generation details. Results are not insurance premium recommendations, medical advice, or evidence of causation. Risk predictions based on demographic and lifestyle features may raise bias, fairness, and compliance concerns. No real claim events or payment/default outcomes are recorded. Additional feature validation, fairness analysis, longitudinal evaluation, stakeholder review, and deployment controls would be required before any real-world application.
+This small teaching dataset has limited representativeness and unknown underlying generation details. Results are not insurance premium recommendations, medical advice, or evidence of causation. Risk predictions based on demographic and lifestyle features may raise bias, fairness, and compliance concerns. No real claim events or payment/default outcomes are recorded. Additional feature validation, fairness analysis, longitudinal evaluation, stakeholder review, and deployment controls would be required before any .
