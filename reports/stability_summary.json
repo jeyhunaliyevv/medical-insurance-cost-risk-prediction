@@ -1,0 +1,54 @@
+{
+  "model": "CatBoost (preselected using original training CV)",
+  "method": "20 repeated random stratified 80/20 holdouts; overlapping samples; descriptive only",
+  "seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119
+  ],
+  "threshold": 0.5,
+  "splits": 20,
+  "metrics": {
+    "roc_auc": {
+      "mean": 0.9066,
+      "std": 0.0262,
+      "min": 0.845,
+      "max": 0.9535
+    },
+    "precision": {
+      "mean": 0.9806,
+      "std": 0.0225,
+      "min": 0.9091,
+      "max": 1.0
+    },
+    "recall": {
+      "mean": 0.7636,
+      "std": 0.0524,
+      "min": 0.6545,
+      "max": 0.8545
+    },
+    "f1": {
+      "mean": 0.8576,
+      "std": 0.0351,
+      "min": 0.7912,
+      "max": 0.9126
+    }
+  }
+}

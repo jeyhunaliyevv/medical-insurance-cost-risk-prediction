@@ -51,3 +51,21 @@ def test_cv_splits_are_train_only():
                               engineer(pd.DataFrame(rows)),pd.Series(y),folds=4)
     assert len(scores)==4
     assert all(0<=s<=1 for s in scores)
+
+
+def test_stability_diagnostics_on_tiny_two_split_sample(tmp_path):
+    from src.stability import run_stability
+    from src.pipeline import HIGH_COST_USD
+    rows = []
+    for i in range(60):
+        row = sample()
+        row['age'] = 20+i%30
+        row['smoker'] = 'yes' if i%3==0 else 'no'
+        row['charges'] = HIGH_COST_USD+1000 if i%3==0 else 5000
+        rows.append(row)
+    data_path = tmp_path/'synthetic.csv'
+    pd.DataFrame(rows).to_csv(data_path,index=False)
+    scores, summary = run_stability(data_path,save_artifacts=False,split_seeds=[101,102])
+    assert len(scores)==2
+    assert summary['splits']==2
+    assert set(scores.columns)=={'split_seed','roc_auc','precision','recall','f1'}

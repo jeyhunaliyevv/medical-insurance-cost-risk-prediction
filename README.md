@@ -1,6 +1,6 @@
 # Medical Insurance High-Cost Prediction · End-to-End ML
 
-[![Python tests](https://img.shields.io/badge/tests-pytest-informational)](#quality-checks)
+[![Python Tests](https://github.com/jeyhunaliyevv/medical-insurance-cost-risk-prediction/actions/workflows/tests.yml/badge.svg)](https://github.com/jeyhunaliyevv/medical-insurance-cost-risk-prediction/actions/workflows/tests.yml)
 
 A portfolio study of **whether example medical insurance charges exceed a predefined $20,000 threshold**, using three classification models and an explainability walkthrough. The objective is modeling and reproducible practice, not actual insurance claim adjudication or individualized pricing.
 
@@ -12,7 +12,7 @@ A portfolio study of **whether example medical insurance charges exceed a predef
 
 ## Data & provenance
 
-Input is the **1,338-row medical insurance charges teaching dataset** (`age`, `sex`, `bmi`, `children`, `smoker`, `region`, `charges`). Original dataset project: https://github.com/stedy/Machine-Learning-with-R-datasets/blob/master/insurance.csv. The original ZIP provided by the user contained this public dataset, which was reused here **only as this project's input**, not from any employer/client/private datasets. The original source's dataset redistribution license was not clearly established. **For a public GitHub repository, `data/insurance.csv` is gitignored until redistribution permission is verified.** Obtain the file from upstream and place it in `data/` before running. In this downloadable ZIP, the local copy is included to make offline review possible; publishing permission is not implied.
+Input is the **1,338-row medical insurance charges teaching dataset** (`age`, `sex`, `bmi`, `children`, `smoker`, `region`, `charges`). Original dataset project: https://github.com/stedy/Machine-Learning-with-R-datasets/blob/master/insurance.csv. This repository uses a separately obtained **public teaching dataset**. No employer, client, or confidential insurance records are included. The upstream dataset redistribution terms have not been verified, so **the CSV is intentionally not distributed in this repository**. Download it from the source and save it as `data/insurance.csv` before running. See [`data/README.md`](data/README.md).
 
 ## Leakage-aware methodology
 
@@ -34,15 +34,42 @@ python -m src.train
 python -m src.predict
 ```
 
-Training writes `reports/metrics.json`, a holdout ROC comparison, an optional SHAP figure, and a locally generated `models/best_model.joblib`. Treat `.joblib` files as executable pickle: **never load an untrusted copy**. Both the model and dataset are intentionally excluded from a default public GitHub commit. The analysis notebook automatically detects the project root if Jupyter is started either in the repository root or in the `notebooks/` folder. Open `notebooks/01_full_analysis.ipynb` and use **Kernel → Restart & Run All**. The pre-executed notebook also contains embedded outputs viewable directly on GitHub.
+Training writes `reports/metrics.json`, a holdout ROC comparison, an optional SHAP figure, and a locally generated `models/best_model.joblib`. Treat `.joblib` files as executable pickle: **never load an untrusted copy**. Both the model and dataset are intentionally excluded from a default public GitHub commit. The analysis notebook detects the project source root when Jupyter is started in the repository root or `notebooks/` folder and gives a specific message if the separately downloaded CSV is missing. Open `notebooks/01_full_analysis.ipynb` and use **Kernel → Restart & Run All**. The pre-executed notebook also contains embedded outputs viewable directly on GitHub.
 
-## Results
+## Verified results and how to read them
 
-The exact metrics after the methodological fixes are in [`reports/metrics.json`](reports/metrics.json). These numbers are **not comparable directly** with earlier versions because the target changed from a dataset-derived 75th percentile to a fixed $20,000 cost cutoff. The script prints CV selection and holdout values after actual execution; no performance figures are invented.
+**Selection:** CatBoost won by training-only 5-fold ROC-AUC. The single untouched 20% holdout is reported separately. The values are different from earlier experiments that used a percentile-derived target; the label here is consistently **charges ≥ $20,000**.
+
+| Model | Training CV ROC-AUC (mean ± SD) | Holdout ROC-AUC | Holdout precision | Holdout recall |
+| --- | ---: | ---: | ---: | ---: |
+| Logistic Regression | 0.8808 ± 0.0465 | 0.9434 | 0.9792 | 0.8545 |
+| XGBoost | 0.8761 ± 0.0401 | 0.9469 | 1.0000 | 0.8545 |
+| **CatBoost (selected)** | **0.8854 ± 0.0323** | **0.9531** | **1.0000** | **0.8545** |
+
+The **0.9531 holdout ROC-AUC is one split, not expected future accuracy**. ROC-AUC measures the ability to rank positive cases ahead of negative cases; it is not classification accuracy. Precision and recall use the fixed 0.50 probability cutoff. Results are on an illustrative dataset and cannot be generalized to actual insurer portfolios.
+
+### Stability across 20 different train/test splits
+
+To assess sensitivity to a single favorable split, we **refit the preselected CatBoost algorithm** on 20 stratified 80/20 partitions (seeds 100–119). This diagnostic **does not repeat algorithm selection** at each split. Repeated test partitions overlap, so these descriptive averages are *not independent external validation or confidence intervals*.
+
+| Holdout metric across 20 splits | Mean | Standard deviation | Minimum–Maximum |
+| --- | ---: | ---: | ---: |
+| ROC-AUC | **0.9066** | 0.0262 | 0.8450–0.9535 |
+| Precision | 0.9806 | 0.0225 | 0.9091–1.0000 |
+| Recall | **0.7636** | 0.0524 | 0.6545–0.8545 |
+| F1 | 0.8576 | 0.0351 | 0.7912–0.9126 |
+
+Read the individual splits in [`reports/stability_splits.csv`](reports/stability_splits.csv), the summary in [`reports/stability_summary.json`](reports/stability_summary.json), and the reproducible analysis in [`src/stability.py`](src/stability.py). **Do not present 85.45% recall from the original split as the typical recall.** The across-split mean is about **76%**.
+
+![Across 20 splits: CatBoost ROC-AUC and recall](reports/figures/stability_20_splits.png)
+
+### Business evidence from the sample
+
+At the fixed **$20,000** threshold, **273 of 1,338 records (20.4%) account for 52.3% of all recorded charges**. Their observed mean charge is **$33,985**, versus **$7,960** for the other records. This highlights cost concentration *within the sample*, potentially useful for a portfolio monitoring case study. These are **descriptive dataset findings, not measured savings, avoided claims, ROI, or a forecast of exact future expenses**.
 
 ### Visual results — generated by executable Notebook cells
 
-**All plots below are real, generated from the included example CSV.** Open [`01_full_analysis.ipynb`](notebooks/01_full_analysis.ipynb) on GitHub to see the corresponding Python code, **inline rendered results**, and business-oriented interpretation. EDA associations are observational, not causal.
+**All plots below were generated from the public example CSV obtained from its upstream source.** Open [`01_full_analysis.ipynb`](notebooks/01_full_analysis.ipynb) on GitHub to see the corresponding Python code, **inline rendered results**, and business-oriented interpretation. EDA associations are observational, not causal.
 
 **EDA 1 · Charge distribution and outliers.** Histogram and boxplot show the distribution and the predefined $20,000 threshold.
 
@@ -94,7 +121,7 @@ The exact metrics after the methodological fixes are in [`reports/metrics.json`]
 
 ## Quality checks
 
-`pytest` checks required columns, implausible values, engineered features, fixed threshold behavior, basic pipeline predictions, and CV execution. The GitHub Actions workflow runs these checks for new pushes and pull requests. CI success is confirmed only after the workflow actually runs on GitHub.
+`pytest` checks required columns, implausible values, engineered features, fixed threshold behavior, basic pipeline predictions, and CV execution. The GitHub Actions workflow runs these checks for new pushes and pull requests. Check the live GitHub Actions badge at the top of this README for the current CI result. The workflow tests code using synthetic test records and does not require the upstream dataset.
 
 ## Business Value & Decision-Making
 
@@ -118,3 +145,7 @@ The exact metrics after the methodological fixes are in [`reports/metrics.json`]
 ## Limitations & ethics
 
 This small teaching dataset has limited representativeness and unknown underlying generation details. Results are not insurance premium recommendations, medical advice, or evidence of causation. Risk predictions based on demographic and lifestyle features may raise bias, fairness, and compliance concerns. No real claim events or payment/default outcomes are recorded. Additional feature validation, fairness analysis, longitudinal evaluation, stakeholder review, and deployment controls would be required before any real-world application.
+
+## Code license and data terms
+
+The project's original code and documentation are licensed under [MIT](LICENSE). **The upstream medical insurance CSV is not covered by this license**, is not redistributed here, and must be obtained independently under its own terms. The project is an educational portfolio case study, not clinical or actuarial software.
