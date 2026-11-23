@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
 from .data import ensure_dataset
 from .train import build_models, ROOT
-from .pipeline import engineer, make_target, validate_raw
+from .pipeline import engineer, make_target, clean_training_data
 
 SPLIT_SEEDS = list(range(100, 120))  # fixed list of 20 random splits (seeds 100-119)
 
@@ -24,7 +24,7 @@ def run_stability(dataset=None, save_artifacts=True, split_seeds=SPLIT_SEEDS):
             raise FileNotFoundError(f'Dataset missing: {data_file}. See data/README.md')
     else:
         data_file = ensure_dataset(ROOT / 'data' / 'insurance.csv')  # downloads + verifies on first run
-    raw = validate_raw(pd.read_csv(data_file), require_target=True)
+    raw, duplicates_removed = clean_training_data(pd.read_csv(data_file))
     features, target = engineer(raw), make_target(raw['charges'])
     records = []
     for seed in split_seeds:
@@ -39,7 +39,7 @@ def run_stability(dataset=None, save_artifacts=True, split_seeds=SPLIT_SEEDS):
     splits = pd.DataFrame(records)
     summary = {'model':'CatBoost (preselected using original training CV)',
                'method':'20 repeated random stratified 80/20 holdouts; overlapping samples; descriptive only',
-               'seeds':list(map(int,split_seeds)), 'threshold':0.5, 'splits':len(splits),
+               'seeds':list(map(int,split_seeds)), 'threshold':0.5, 'splits':len(splits), 'dataset_rows':len(raw), 'duplicates_removed':duplicates_removed,
                'metrics':{name:{'mean':round(float(splits[name].mean()),4),
                                 'std':round(float(splits[name].std(ddof=1)),4),
                                 'min':round(float(splits[name].min()),4),

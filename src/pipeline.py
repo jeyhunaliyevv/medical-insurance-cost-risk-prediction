@@ -52,3 +52,14 @@ def preprocessor() -> ColumnTransformer:
 
 def make_target(charges: pd.Series, threshold: float = HIGH_COST_USD) -> pd.Series:
     return (charges >= threshold).astype(int)
+
+
+def clean_training_data(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Validate inputs and remove exact duplicate observations before any split.
+
+    This dataset has no stable person ID; only byte-for-byte row duplicates are
+    removed. Real records may require a different entity-based deduplication rule.
+    """
+    valid = validate_raw(df, require_target=True)
+    duplicates = int(valid.duplicated().sum())
+    return valid.drop_duplicates().reset_index(drop=True), duplicates

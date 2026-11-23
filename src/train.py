@@ -20,7 +20,7 @@ from sklearn.metrics import (average_precision_score, brier_score_loss,
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
-from .pipeline import SEED, HIGH_COST_USD, engineer, make_target, preprocessor, validate_raw
+from .pipeline import SEED, HIGH_COST_USD, engineer, make_target, preprocessor, clean_training_data
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -62,9 +62,7 @@ def run_training(dataset=None, *, save_artifacts=True):
             raise FileNotFoundError(f"Dataset missing: {raw_path}; see data/README.md")
     else:
         raw_path = ensure_dataset(ROOT / "data" / "insurance.csv")  # downloads + verifies on first run
-    raw = validate_raw(pd.read_csv(raw_path), require_target=True)
-    # Keep the input dataset unchanged. Duplicate exact rows may represent
-    # genuine people; report rather than drop automatically.
+    raw, duplicates_removed = clean_training_data(pd.read_csv(raw_path))
     x = engineer(raw)
     y = make_target(raw["charges"])
     x_train, x_test, y_train, y_test = train_test_split(
@@ -83,7 +81,7 @@ def run_training(dataset=None, *, save_artifacts=True):
     for name, model in fitted.items():
         prob = model.predict_proba(x_test)[:, 1]
         summaries[name]["holdout"] = evaluate(y_test, prob)
-    output = {"dataset_rows": len(raw), "duplicates_reported": int(raw.duplicated().sum()),
+    output = {"dataset_rows": len(raw), "duplicates_removed": duplicates_removed,
               "high_cost_definition": f"charges >= ${HIGH_COST_USD:,.0f} (fixed illustrative cutoff)",
               "high_cost_rate": round(float(y.mean()),4),
               "selection_metric": "5-fold training CV ROC-AUC",

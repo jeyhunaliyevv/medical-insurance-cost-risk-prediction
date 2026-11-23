@@ -27,3 +27,29 @@ def test_wrong_checksum_is_rejected(tmp_path):
 def test_failed_download_gives_clear_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="Download it manually"):
         ensure_dataset(tmp_path / "x.csv", url=(tmp_path / "missing.csv").as_uri())
+
+
+def test_exact_duplicate_removed_before_split():
+    import pandas as pd
+    from src.pipeline import clean_training_data
+    row = dict(age=28,sex='female',bmi=24.2,children=0,smoker='no',region='northwest',charges=1200.0)
+    rows = [row, row.copy(), {**row, 'charges':1350.0}]
+    cleaned, duplicate_count = clean_training_data(pd.DataFrame(rows))
+    assert duplicate_count == 1
+    assert len(cleaned) == 2
+    assert not cleaned.duplicated().any()
+    assert cleaned.index.tolist() == [0,1]
+
+
+def test_real_dataset_leakage_prevention_when_available():
+    import pandas as pd
+    """Optional local integration check: original CSV is not included in GitHub."""
+    from pathlib import Path
+    from src.pipeline import clean_training_data
+    original = Path(__file__).resolve().parents[1] / 'data' / 'insurance.csv'
+    if not original.exists():
+        return
+    cleaned, dup = clean_training_data(pd.read_csv(original))
+    assert len(cleaned) == 1337
+    assert dup == 1
+    assert not cleaned.duplicated().any()
