@@ -11,15 +11,19 @@ import pandas as pd
 from sklearn.base import clone
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
+from .data import ensure_dataset
 from .train import build_models, ROOT
 from .pipeline import engineer, make_target, validate_raw
 
-SPLIT_SEEDS = list(range(100, 120))  # predeclared 20 random splits
+SPLIT_SEEDS = list(range(100, 120))  # fixed list of 20 random splits (seeds 100-119)
 
 def run_stability(dataset=None, save_artifacts=True, split_seeds=SPLIT_SEEDS):
-    data_file = Path(dataset) if dataset is not None else ROOT / 'data' / 'insurance.csv'
-    if not data_file.is_file():
-        raise FileNotFoundError(f'Dataset missing: {data_file}. Download from the link in data/README.md')
+    if dataset is not None:
+        data_file = Path(dataset)
+        if not data_file.is_file():
+            raise FileNotFoundError(f'Dataset missing: {data_file}. See data/README.md')
+    else:
+        data_file = ensure_dataset(ROOT / 'data' / 'insurance.csv')  # downloads + verifies on first run
     raw = validate_raw(pd.read_csv(data_file), require_target=True)
     features, target = engineer(raw), make_target(raw['charges'])
     records = []

@@ -8,8 +8,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 SEED = 42
-# Explicit, illustrative policy threshold chosen BEFORE inspection/splitting.
-# Not a medical/actuarial standard or a claim-paid amount.
+# Fixed, round-number illustrative cutoff (about the 80th percentile of this dataset,
+# i.e. ~20% of rows are labelled high-cost). Not a medical/actuarial standard or a claim-paid amount.
 HIGH_COST_USD = 20_000.0
 RAW_FEATURES = ["age", "sex", "bmi", "children", "smoker", "region"]
 CAT = ["sex", "smoker", "region"]

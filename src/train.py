@@ -1,4 +1,4 @@
-"""Train and validate classifiers using a predefined USD cost threshold.
+"""Train and validate classifiers using a fixed USD cost threshold.
 
 No test set is used to select a model or threshold.
 """
@@ -7,11 +7,11 @@ import json
 from pathlib import Path
 import joblib
 import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from .compat import CatBoostAdapter
+from .data import ensure_dataset
 from sklearn.base import clone
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (average_precision_score, brier_score_loss,
@@ -56,9 +56,12 @@ def evaluate(y, prob):
     }
 
 def run_training(dataset=None, *, save_artifacts=True):
-    raw_path = Path(dataset) if dataset else ROOT / "data" / "insurance.csv"
-    if not raw_path.is_file():
-        raise FileNotFoundError(f"Dataset missing: {raw_path}; see data/README.md")
+    if dataset:
+        raw_path = Path(dataset)
+        if not raw_path.is_file():
+            raise FileNotFoundError(f"Dataset missing: {raw_path}; see data/README.md")
+    else:
+        raw_path = ensure_dataset(ROOT / "data" / "insurance.csv")  # downloads + verifies on first run
     raw = validate_raw(pd.read_csv(raw_path), require_target=True)
     # Keep the input dataset unchanged. Duplicate exact rows may represent
     # genuine people; report rather than drop automatically.
@@ -120,4 +123,5 @@ def run_training(dataset=None, *, save_artifacts=True):
     return output
 
 if __name__ == "__main__":
+    matplotlib.use("Agg")  # only for command-line runs; importing this module must not change the backend
     run_training()
