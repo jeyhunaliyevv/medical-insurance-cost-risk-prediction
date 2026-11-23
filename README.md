@@ -1,4 +1,5 @@
-# Medical Insurance High-Cost Prediction · End-to-End ML
+# Medica Insurance High-Cost Prediction · End-to-End ML
+
 
 [![Python Tests](https://github.com/jeyhunaliyevv/medical-insurance-cost-risk-prediction/actions/workflows/tests.yml/badge.svg)](https://github.com/jeyhunaliyevv/medical-insurance-cost-risk-prediction/actions/workflows/tests.yml)
 
