@@ -1,4 +1,5 @@
-# Dataset
+
+
 
 `insurance.csv` is the public *Medical Cost Personal Dataset* (1,338 rows: `age`, `sex`, `bmi`, `children`, `smoker`, `region`, `charges`).
 
